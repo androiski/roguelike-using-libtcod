@@ -1,6 +1,8 @@
 use tcod::colors::*;
 use tcod::console::*;
 
+
+
 // actual size of the window
 const SCREEN_WIDTH: i32 = 80;
 const SCREEN_HEIGHT: i32 = 50;
@@ -9,6 +11,39 @@ const LIMIT_FPS: i32 = 20; // 20 frames-per-second maximum
 
 struct Tcod {
     root: Root,
+}
+
+fn handle_keys(tcod: &mut Tcod, player_x: &mut i32, player_y: &mut i32) -> bool {
+    //if you import in a function, only this function can use it
+    use tcod::input::Key;
+    use tcod::input::KeyCode::*;
+
+    let key = tcod.root.wait_for_keypress(true);
+
+    match key {
+        //make fullscreen
+        Key {
+            code: Enter,
+            alt: true,
+            ..
+        } => {
+            // Alt+Enter: toggle fullscreen
+            let fullscreen = tcod.root.is_fullscreen();
+            tcod.root.set_fullscreen(!fullscreen);
+        }
+
+        //exit game
+        Key { code: Escape, .. } => return true,
+
+        //keys for movement
+        Key { code: Up, .. } => *player_y -= 1,
+        Key { code: Down, .. } => *player_y += 1,
+        Key { code: Left, .. } => *player_x -= 1,
+        Key { code: Right, .. } => *player_x += 1,
+
+        _ => {}
+    }
+    false
 }
 
 fn main() {
@@ -29,14 +64,20 @@ fn main() {
     let mut player_x = SCREEN_WIDTH / 2;
     let mut player_y = SCREEN_HEIGHT / 2;
 
-    // game loop
+    // main game loop
     while !tcod.root.window_closed() {
         tcod.root.set_default_foreground(WHITE);
         tcod.root.clear();
-        tcod.root.put_char(1, 1, '@', BackgroundFlag::None);
+        tcod.root.put_char(player_x, player_y, '@', BackgroundFlag::None);
         tcod.root.flush();
         tcod.root.wait_for_keypress(true);
+
+        // key handler
+        let exit = handle_keys(&mut tcod, &mut player_x, &mut player_y);
+        if exit { break ; }
     }
 
 
+
 }
+
